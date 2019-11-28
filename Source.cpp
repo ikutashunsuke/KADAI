@@ -114,20 +114,56 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 		case(int)GAME_SCENE_PLAY:
 
-			chara.Y += juryoku;
+			
+			
+				chara.Y += juryoku;
 
-			if (AllKeyState[KEY_INPUT_SPACE] != 0)
+				if (AllKeyState[KEY_INPUT_SPACE] != 0)
+				{
+
+					if (chara.IsJump == FALSE)
+					{
+						chara.IsJump = TRUE;
+					}
+				}
+
+				if (chara.IsJump == TRUE)
+				{
+					chara.jump_cnt++;
+
+					if (chara.Y - chara.MoveSpeed > 0)
+					{
+						chara.Y -= chara.MoveSpeed;
+					}
+				}
+
+				if (chara.jump_cnt == chara.jump_max)
+				{
+					chara.IsJump = FALSE;
+					chara.jump_cnt = 0;
+				}
+			
+			
+			
+			
+
+
+			if (chara.Y + chara.Height + chara.MoveSpeed > GAME_HEIGHT)
 			{
-				chara.Y -= chara.MoveSpeed;
+				chara.Y -= juryoku;
 			}
 
 
 
 
 
+
 			MY_DRAW_PLAY_INFO();
+			
 			DrawGraph(0, 0, Handle_back, TRUE);
 			DrawGraph(chara.X, chara.Y, chara.Handle, TRUE);
+			DrawFormatString(0, 0, GetColor(0, 0, 0), "クラゲの位置：(%3d,%3d)", chara.X, chara.Y);
+			DrawFormatString(0, 30, GetColor(0, 0, 0), "ジャンプ時間：%3d", chara.jump_cnt);
 		}
 		MY_FPS_DRAW();
 
@@ -205,7 +241,7 @@ VOID MY_GAME_TITLE(VOID)
 
 		chara.IsJump = FALSE;
 		chara.jump_cnt = 0;
-		chara.jump_max = 60;	//60fps=1秒
+		chara.jump_max = 25;	//60fps=1秒
 
 		GameSceneNow = (int)GAME_SCENE_PLAY;
 	}
