@@ -63,7 +63,7 @@ struct KABE {
 
 CHARA chara;
 GOAL goal;
-
+KABE kabe;
 
 //fps関連
 int CountFps;
@@ -92,10 +92,6 @@ int Handle_back;
 int Handle_title;
 int Handle_pushenter;
 
-bool opbgm_flag = true;
-bool playbgm_flag = true;
-bool endbgm_flag = true;
-
 int BGM_nami_handle;	//BGMのハンドル
 int BGM_op_handle;
 int BGM_play_handle;
@@ -116,7 +112,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Handle_back = LoadGraph(GAME_BACKGROUND);//背景
 	Handle_title = LoadGraph(GAME_LOGO);//タイトル
 	Handle_pushenter = LoadGraph(GAME_PUSH);//えんたーきーおして
-	
+
 	BGM_nami_handle = LoadSoundMem(WAVE_BGM);
 	BGM_op_handle = LoadSoundMem(OP_BGM);
 	BGM_play_handle = LoadSoundMem(PLAY_BGM);
@@ -140,42 +136,42 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{
 		case(int)GAME_SCENE_TITLE:
 			MY_GAME_TITLE();
-			
+
 			break;
 		case(int)GAME_SCENE_PLAY:
 
-			
-			
+
+
 			chara.Y += juryoku;
 
-				if (AllKeyState[KEY_INPUT_SPACE] != 0)
-					{
+			if (AllKeyState[KEY_INPUT_SPACE] != 0)
+			{
 
-						if (chara.IsJump == FALSE)
-						{
-							chara.IsJump = TRUE;
-						}
-					}
+				if (chara.IsJump == FALSE)
+				{
+					chara.IsJump = TRUE;
+				}
+			}
 
-					if (chara.IsJump == TRUE)
-					{
-						chara.jump_cnt++;
+			if (chara.IsJump == TRUE)
+			{
+				chara.jump_cnt++;
 
-						if (chara.Y - chara.MoveSpeed > 0)
-						{
-							chara.Y -= chara.MoveSpeed;
-						}
-					}
+				if (chara.Y - chara.MoveSpeed > 0)
+				{
+					chara.Y -= chara.MoveSpeed;
+				}
+			}
 
-					if (chara.jump_cnt == chara.jump_max)
-					{
-						chara.IsJump = FALSE;
-						chara.jump_cnt = 0;
-				}	
-			
-			
-			
-			
+			if (chara.jump_cnt == chara.jump_max)
+			{
+				chara.IsJump = FALSE;
+				chara.jump_cnt = 0;
+			}
+
+
+
+
 
 
 			if (chara.Y + chara.Height + chara.MoveSpeed > GAME_HEIGHT)
@@ -189,7 +185,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 			MY_DRAW_PLAY_INFO();
-			
+
 			DrawGraph(0, 0, Handle_back, TRUE);
 			DrawGraph(chara.X, chara.Y, chara.Handle, TRUE);
 			DrawFormatString(0, 40, GetColor(0, 0, 0), "クラゲの位置：(%3d,%3d)", chara.X, chara.Y);
@@ -266,25 +262,16 @@ VOID MY_FPS_WAIT(VOID)
 
 VOID MY_GAME_TITLE(VOID)
 {
-	//if (opbgm_flag == true)
-	//{
-		//PlaySoundMem(OP_BGM, DX_PLAYTYPE_LOOP);
-		//PlaySoundMem(WAVE_BGM, DX_PLAYTYPE_LOOP);
-		
-		
-		
-		//opbgm_flag = false;
-	//}
-	
-		//波の音が流れていなかったら流す
-		if (CheckSoundMem(BGM_nami_handle) == 0)
-		{
-			PlaySoundMem(BGM_nami_handle, DX_PLAYTYPE_LOOP);
-		}
-		if (CheckSoundMem(BGM_op_handle) == 0)
-		{
-			PlaySoundMem(BGM_op_handle, DX_PLAYTYPE_LOOP);
-		}
+
+	//波の音が流れていなかったら流す
+	if (CheckSoundMem(BGM_nami_handle) == 0)
+	{
+		PlaySoundMem(BGM_nami_handle, DX_PLAYTYPE_LOOP);
+	}
+	if (CheckSoundMem(BGM_op_handle) == 0)
+	{
+		PlaySoundMem(BGM_op_handle, DX_PLAYTYPE_LOOP);
+	}
 
 	if (AllKeyState[KEY_INPUT_RETURN] != 0)
 	{
@@ -305,6 +292,16 @@ VOID MY_GAME_TITLE(VOID)
 		chara.IsJump = FALSE;
 		chara.jump_cnt = 0;
 		chara.jump_max = 25;	//60fps=1秒
+
+		kabe.kabe1.left = 700;
+		kabe.kabe1.top = 0;
+		kabe.kabe1.right = 800;
+		kabe.kabe1.bottom = 200;
+
+		kabe.kabe2.left = 700;
+		kabe.kabe2.top = 400;
+		kabe.kabe2.right = 800;
+		kabe.kabe2.bottom = 600;
 
 		GameSceneNow = (int)GAME_SCENE_PLAY;
 	}
@@ -366,7 +363,7 @@ VOID MY_ALL_KEYDOWN_UPDATE(VOID)
 
 VOID MY_DRAW_PLAY_INFO(VOID)
 {
-	
+
 	/*if (playbgm_flag == true)
 	{
 		PlayMusic(PLAY_BGM, DX_PLAYTYPE_LOOP);
