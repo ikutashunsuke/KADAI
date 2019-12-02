@@ -12,6 +12,11 @@
 #define GAME_LOGO		"..\\画像\\ゲームタイトル.png"
 #define GAME_PUSH		"..\\画像\\pushenter.png"
 
+#define OP_BGM			"..\\BGM\\op.mp3"
+#define WAVE_BGM		"..\\BGM\\wave.mp3"
+#define PLAY_BGM		"..\\BGM\\play.mp3"
+#define END_BGM			"..\\BGM\\end.mp3"
+
 #define GAME_FPS_SPEED 60
 
 #define SET_WINDOW_ST_MODE_DEFAULT 0
@@ -51,6 +56,11 @@ struct GOAL {
 	int C_Height;
 };
 
+struct KABE {
+	RECT kabe1;
+	RECT kabe2;
+};
+
 CHARA chara;
 GOAL goal;
 
@@ -82,6 +92,15 @@ int Handle_back;
 int Handle_title;
 int Handle_pushenter;
 
+bool opbgm_flag = true;
+bool playbgm_flag = true;
+bool endbgm_flag = true;
+
+int BGM_nami_handle;	//BGMのハンドル
+int BGM_op_handle;
+int BGM_play_handle;
+int BGM_end_handle;
+
 int goalX, goalY, goalW, goalH;
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -94,9 +113,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	SetDrawScreen(DX_SCREEN_BACK);
 
 	if (MY_GAZOU_LOAD(&chara, 100, 400, GAME_CHARA) == FALSE) { return -1; }
-	Handle_back = LoadGraph(GAME_BACKGROUND);
-	Handle_title = LoadGraph(GAME_LOGO);
-	Handle_pushenter = LoadGraph(GAME_PUSH);
+	Handle_back = LoadGraph(GAME_BACKGROUND);//背景
+	Handle_title = LoadGraph(GAME_LOGO);//タイトル
+	Handle_pushenter = LoadGraph(GAME_PUSH);//えんたーきーおして
+	
+	BGM_nami_handle = LoadSoundMem(WAVE_BGM);
+	BGM_op_handle = LoadSoundMem(OP_BGM);
+	BGM_play_handle = LoadSoundMem(PLAY_BGM);
+	BGM_end_handle = LoadSoundMem(END_BGM);
+
+	if (BGM_nami_handle == -1) { return -1; }
+	if (BGM_op_handle == -1) { return -1; }
+	if (BGM_play_handle == -1) { return -1; }
+	if (BGM_end_handle == -1) { return -1; }
+
 
 	while (TRUE)
 	{
@@ -110,38 +140,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{
 		case(int)GAME_SCENE_TITLE:
 			MY_GAME_TITLE();
-
+			
 			break;
 		case(int)GAME_SCENE_PLAY:
 
 			
 			
-				chara.Y += juryoku;
+			chara.Y += juryoku;
 
 				if (AllKeyState[KEY_INPUT_SPACE] != 0)
-				{
-
-					if (chara.IsJump == FALSE)
 					{
-						chara.IsJump = TRUE;
+
+						if (chara.IsJump == FALSE)
+						{
+							chara.IsJump = TRUE;
+						}
 					}
-				}
 
-				if (chara.IsJump == TRUE)
-				{
-					chara.jump_cnt++;
-
-					if (chara.Y - chara.MoveSpeed > 0)
+					if (chara.IsJump == TRUE)
 					{
-						chara.Y -= chara.MoveSpeed;
-					}
-				}
+						chara.jump_cnt++;
 
-				if (chara.jump_cnt == chara.jump_max)
-				{
-					chara.IsJump = FALSE;
-					chara.jump_cnt = 0;
-				}
+						if (chara.Y - chara.MoveSpeed > 0)
+						{
+							chara.Y -= chara.MoveSpeed;
+						}
+					}
+
+					if (chara.jump_cnt == chara.jump_max)
+					{
+						chara.IsJump = FALSE;
+						chara.jump_cnt = 0;
+				}	
 			
 			
 			
@@ -162,8 +192,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			
 			DrawGraph(0, 0, Handle_back, TRUE);
 			DrawGraph(chara.X, chara.Y, chara.Handle, TRUE);
-			DrawFormatString(0, 0, GetColor(0, 0, 0), "クラゲの位置：(%3d,%3d)", chara.X, chara.Y);
-			DrawFormatString(0, 30, GetColor(0, 0, 0), "ジャンプ時間：%3d", chara.jump_cnt);
+			DrawFormatString(0, 40, GetColor(0, 0, 0), "クラゲの位置：(%3d,%3d)", chara.X, chara.Y);
+			DrawFormatString(0, 20, GetColor(0, 0, 0), "ジャンプ時間：%3d", chara.jump_cnt);
 		}
 		MY_FPS_DRAW();
 
@@ -171,6 +201,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		MY_FPS_WAIT();
 	}
+
+	DeleteSoundMem(BGM_nami_handle);
 
 	WaitKey();
 	DxLib_End();
@@ -215,7 +247,7 @@ VOID MY_FPS_UPDATE(VOID)
 
 VOID MY_FPS_DRAW(VOID)
 {
-	DrawFormatString(0, 0, GetColor(255, 255, 255), "FPS:%.1f", CalcFps);
+	DrawFormatString(0, 0, GetColor(0, 0, 0), "FPS:%.1f", CalcFps);
 
 	return;
 }
@@ -234,8 +266,39 @@ VOID MY_FPS_WAIT(VOID)
 
 VOID MY_GAME_TITLE(VOID)
 {
+	//if (opbgm_flag == true)
+	//{
+		//PlaySoundMem(OP_BGM, DX_PLAYTYPE_LOOP);
+		//PlaySoundMem(WAVE_BGM, DX_PLAYTYPE_LOOP);
+		
+		
+		
+		//opbgm_flag = false;
+	//}
+	
+		//波の音が流れていなかったら流す
+		if (CheckSoundMem(BGM_nami_handle) == 0)
+		{
+			PlaySoundMem(BGM_nami_handle, DX_PLAYTYPE_LOOP);
+		}
+		if (CheckSoundMem(BGM_op_handle) == 0)
+		{
+			PlaySoundMem(BGM_op_handle, DX_PLAYTYPE_LOOP);
+		}
+
 	if (AllKeyState[KEY_INPUT_RETURN] != 0)
 	{
+		//波の音が流れていれば止める
+		if (CheckSoundMem(BGM_nami_handle) == 1)
+		{
+			StopSoundMem(BGM_nami_handle);
+		}
+		if (CheckSoundMem(BGM_op_handle) == 1)
+		{
+			StopSoundMem(BGM_op_handle);
+		}
+
+
 		chara.X = 100;
 		chara.Y = 200;
 
@@ -248,7 +311,7 @@ VOID MY_GAME_TITLE(VOID)
 
 	DrawGraph(0, 0, Handle_back, TRUE);
 	DrawGraph(0, 0, Handle_title, TRUE);
-	DrawGraph(0, 0, Handle_pushenter, TRUE);
+	DrawGraph(0, 220, Handle_pushenter, TRUE);
 
 }
 
@@ -259,8 +322,23 @@ VOID MY_GAME_END(VOID)
 	SetFontSize(100);
 	DrawString(150, 200, &EndWin[0], GetColor(255, 255, 255));
 
+	/*if (endbgm_flag == true)
+	{
+		PlayMusic(END_BGM, DX_PLAYTYPE_BACK);
+		endbgm_flag = false;
+	}*/
+
+	if (CheckSoundMem(BGM_end_handle) == 0)
+	{
+		PlaySoundMem(BGM_end_handle, DX_PLAYTYPE_LOOP);
+	}
+
 	if (AllKeyState[KEY_INPUT_RETURN != 0])
 	{
+		if (CheckSoundMem(BGM_end_handle) == 1)
+		{
+			StopSoundMem(BGM_end_handle);
+		}
 		GameSceneNow = (int)GAME_SCENE_TITLE;
 	}
 
@@ -288,6 +366,27 @@ VOID MY_ALL_KEYDOWN_UPDATE(VOID)
 
 VOID MY_DRAW_PLAY_INFO(VOID)
 {
+	
+	/*if (playbgm_flag == true)
+	{
+		PlayMusic(PLAY_BGM, DX_PLAYTYPE_LOOP);
+		playbgm_flag = false;
+	}*/
+
+	if (CheckSoundMem(BGM_play_handle) == 0)
+	{
+		PlaySoundMem(BGM_play_handle, DX_PLAYTYPE_LOOP);
+	}
+
+	if (AllKeyState[KEY_INPUT_RETURN] != 0)
+	{
+		//波の音が流れていれば止める
+		if (CheckSoundMem(BGM_play_handle) == 1)
+		{
+			StopSoundMem(BGM_play_handle);
+		}
+	}
+
 	//ゴール範囲
 	DrawBox(goal.X, goal.Y, goal.X + goal.Width, goal.Y + goal.Height, GetColor(255, 0, 0), true);
 
